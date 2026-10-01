@@ -1,16 +1,15 @@
+const fs = require('fs/promises');
+const path = require('path');
 
-const fs = require('fs/promises')
-const path = require('path')
+const dbPath = path.join(__dirname, '../db.json');
 
-const filePath = path.join(__dirname,'../db.json')
-
-
-
-async function readData() {
-  let products = await fs.readFile(filePath, "utf-8");
-  return JSON.parse(products);
+async function fetchDbData() {
+  const contents = await fs.readFile(dbPath, "utf-8");
+  return JSON.parse(contents);
 }
-async function writeData(products){
-  await fs.writeFile(filePath,JSON.stringify(products))
+
+async function saveDbData(items) {
+  await fs.writeFile(dbPath, JSON.stringify(items));
 }
-module.exports = {readData,writeData}
+
+module.exports = { fetchDbData, saveDbData };

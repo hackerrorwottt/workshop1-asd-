@@ -1,85 +1,64 @@
-const { readData,writeData } = require("../database/productDatabase");
+const { fetchDbData, saveDbData } = require("../database/productDatabase");
 
-async function delay() {
-  await new Promise((resolve, reject) => {
-    setTimeout(resolve, 1500);
+async function waitDelay() {
+  await new Promise((res) => {
+    setTimeout(res, 1500);
   });
-
-  return await readData();
+  return await fetchDbData();
 }
 
-async function getProducts() {
-  return await delay();
+async function retrieveAllProducts() {
+  return await waitDelay();
 }
 
-async function getProductsById(id) {
-  let data = await delay();
-
-  return data.find((x) => x.id === id);
+async function retrieveProductById(prodId) {
+  const records = await waitDelay();
+  return records.find((item) => item.id === prodId);
 }
 
-async function createProduct(product){
-    let data = await readData()
-    data.push(product)
-    
-    await writeData(data)
-
-    return product;
+async function insertProduct(newItem) {
+  const records = await fetchDbData();
+  records.push(newItem);
+  await saveDbData(records);
+  return newItem;
 }
 
-async function updateProduct(id,product){
-  let data = await readData()
-
-  let index = data.findIndex((x)=> x.id === id);
-
-  if(index === -1){
-    return;
-  }
-
-  data[index] = product;
-
-  await writeData(data);
-  return product;
+async function replaceProduct(prodId, updatedItem) {
+  const records = await fetchDbData();
+  const idx = records.findIndex((item) => item.id === prodId);
+  if (idx === -1) return null;
+  
+  records[idx] = updatedItem;
+  await saveDbData(records);
+  return updatedItem;
 }
 
-async function patchProduct(id,product){
-  let data = await readData();
+async function modifyProduct(prodId, partialItem) {
+  const records = await fetchDbData();
+  const idx = records.findIndex((item) => item.id === prodId);
+  if (idx === -1) return null;
 
-  let index = data.findIndex((x)=> x.id === id);
-
-  if(index === -1){
-    return;
-  }
-
-  data[index] = {...data[index],...product};
-
-  await writeData(data);
-
-  return data[index];
+  records[idx] = { ...records[idx], ...partialItem };
+  await saveDbData(records);
+  return records[idx];
 }
 
-async function deleteProduct(id){
-  let data = await readData()
+async function removeProduct(prodId) {
+  const records = await fetchDbData();
+  const idx = records.findIndex((item) => item.id === prodId);
+  if (idx === -1) return null;
 
-  let index = data.findIndex((x)=> x.id === id);
-
-  if(index === -1){
-    return 
-  }
-
-  let deletedProduct = data[index]
-
-  data.splice(index,1);
-
-  await writeData(data);
-  return deletedProduct;
+  const itemToRemove = records[idx];
+  records.splice(idx, 1);
+  await saveDbData(records);
+  return itemToRemove;
 }
 
 module.exports = {
-  getProducts,
-  getProductsById,
-  createProduct,
-  updateProduct,
-  patchProduct,
-  deleteProduct
+  retrieveAllProducts,
+  retrieveProductById,
+  insertProduct,
+  replaceProduct,
+  modifyProduct,
+  removeProduct
 };

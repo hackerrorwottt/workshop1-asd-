@@ -1,12 +1,11 @@
-const express = require('express')
-const productRoutes = require('./routes/productRoutes');
+const express = require('express');
+const appRouter = require('./routes/productRoutes');
 
-const app = express()
+const webServer = express();
 
-app.use(express.json())
+webServer.use(express.json());
+webServer.use(appRouter);
 
-app.use(productRoutes);
-
-app.listen(3000,()=>{
-  console.log("Server running on port 3000")
-})
+webServer.listen(3000, () => {
+  console.log("Listening on 3000");
+});

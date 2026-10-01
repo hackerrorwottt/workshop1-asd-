@@ -1,44 +1,41 @@
-let cache = {}
+let cacheStore = {};
 
-function checkCache(key){
-    let value = cache[key]
-
-    if(!value){
-        return
+function inspectCache(cacheKey) {
+    const cachedItem = cacheStore[cacheKey];
+    if (!cachedItem) {
+        return;
     }
-
-    let age = Date.now()-value.createdAt
-
-    if (age>60*1000){
-        delete cache[key]
-        return
+    const duration = Date.now() - cachedItem.timestamp;
+    if (duration > 60000) {
+        delete cacheStore[cacheKey];
+        return;
     }
-
-    return value.data
+    return cachedItem.payload;
 }
-function saveCache(key,data){
-    cache[key] = {data:data,
-        createdAt: Date.now()
+
+function storeCacheItem(cacheKey, payload) {
+    cacheStore[cacheKey] = {
+        payload: payload,
+        timestamp: Date.now()
     };
 }
 
-function clearCache(){
-    cache = {}
+function flushCache() {
+    cacheStore = {};
 }
 
-function cacheMiddleware(req,res,next){
+function performCacheCheck(req, res, next) {
+    const cacheKey = req.url;
+    const cachedItem = inspectCache(cacheKey);
 
-    let key = req.url
-    let value = checkCache(key)
-
-    if(value){
-        console.log('cache worked')
-        res.set("X-Cache","HIT")
-        return res.json(value)
+    if (cachedItem) {
+        console.log('Returned from cache');
+        res.set("X-Cache", "HIT");
+        return res.json(cachedItem);
     }
 
-    res.set("X-Cache","MISS")
-    next()
+    res.set("X-Cache", "MISS");
+    next();
 }
 
-module.exports = {cacheMiddleware,saveCache,clearCache}
+module.exports = { performCacheCheck, storeCacheItem, flushCache };

@@ -1,118 +1,94 @@
 const {
-    getProducts,
-    getProductsById,
-    createProduct,
-    updateProduct,
-    patchProduct,
-    deleteProduct
-} = require('../services/productService')
-const {saveCache,clearCache} = require('../middleware/cacheMiddleware')
+    retrieveAllProducts,
+    retrieveProductById,
+    insertProduct,
+    replaceProduct,
+    modifyProduct,
+    removeProduct
+} = require('../services/productService');
+const { storeCacheItem, flushCache } = require('../middleware/cacheMiddleware');
 
-
-async function getAllProducts(req,res){
-    try{
-        let data = await getProducts();
-        saveCache(req.url,data)
-
-        return res.json(data)
-    }catch(err){
-        console.log(err)
+async function handleGetAllProducts(req, res) {
+    try {
+        const records = await retrieveAllProducts();
+        storeCacheItem(req.url, records);
+        return res.json(records);
+    } catch (error) {
+        console.error(error);
     }
 }
 
-
-async function getSpecificProduct(req,res){
-    try{
-        let id = Number(req.params.id);
-        let specificData = await getProductsById(id)
-
-        saveCache(req.url,specificData)
-        res.json(specificData);
-    } catch(err){
-        console.log(err)
+async function handleGetSpecificProduct(req, res) {
+    try {
+        const prodId = Number(req.params.id);
+        const itemData = await retrieveProductById(prodId);
+        storeCacheItem(req.url, itemData);
+        res.json(itemData);
+    } catch (error) {
+        console.error(error);
     }
 }
 
-
-async function postProduct(req,res){
-    try{
-        let product = req.body;
-
-        let data = await createProduct(product);
-
-        clearCache()
-        res.json(data)
-    }catch(err){
-        console.log(err)
+async function handlePostProduct(req, res) {
+    try {
+        const payload = req.body;
+        const result = await insertProduct(payload);
+        flushCache();
+        res.json(result);
+    } catch (error) {
+        console.error(error);
     }
 }
 
-async function putProduct(req,res){
-    try{
-        let id = Number(req.params.id)
-        let product = req.body;
-
-        let data = await updateProduct(id,product);
-
-        if(!data){
-            return res.status(404).json({message:"Product not found"})
+async function handlePutProduct(req, res) {
+    try {
+        const prodId = Number(req.params.id);
+        const payload = req.body;
+        const result = await replaceProduct(prodId, payload);
+        if (!result) {
+            return res.status(404).json({ message: "Item not found" });
         }
-
-        clearCache();
-
-        res.json(data);
-
-    }catch(err){
-        console.log(err);
+        flushCache();
+        res.json(result);
+    } catch (error) {
+        console.error(error);
     }
 }
 
-async function patchProductController(req,res){
-    try{
-        let id = Number(req.params.id);
-        let product = req.body;
-
-        let data = await patchProduct(id,product);
-
-
-        if(!data){
-            return res.status(404).json({message:"Product not found"});
-
+async function handlePatchProduct(req, res) {
+    try {
+        const prodId = Number(req.params.id);
+        const payload = req.body;
+        const result = await modifyProduct(prodId, payload);
+        if (!result) {
+            return res.status(404).json({ message: "Item not found" });
         }
-
-        clearCache();
-
-        res.json(data);
-
-    }catch(err){
-        console.log(err);
+        flushCache();
+        res.json(result);
+    } catch (error) {
+        console.error(error);
     }
 }
 
-async function deleteProductController(req,res){
-
-    try{
-        let id = Number(req.params.id)
-
-        let data = await deleteProduct(id)
-
-        if(!data){
-            return res.status(404).json({message:"Product not found"})
-
+async function handleDeleteProduct(req, res) {
+    try {
+        const prodId = Number(req.params.id);
+        const result = await removeProduct(prodId);
+        if (!result) {
+            return res.status(404).json({ message: "Item not found" });
         }
-        clearCache()
-        res.json(data)
-    }catch(err){
-        console.log(err);
+        flushCache();
+        res.json(result);
+    } catch (error) {
+        console.error(error);
     }
 }
-
 
 module.exports = {
-    getAllProducts,
-    getSpecificProduct,
-    postProduct,
-    putProduct,
-    patchProductController,
-    deleteProductController
+    handleGetAllProducts,
+    handleGetSpecificProduct,
+    handlePostProduct,
+    handlePutProduct,
+    handlePatchProduct,
+    handleDeleteProduct
 };
